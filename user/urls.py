@@ -1,12 +1,19 @@
-from django.urls import path
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-
+from django.urls import path, include
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView, TokenVerifyView,
 )
+from user.views import (
+    CreateUserView,
+    LogoutView,
+    ManageUserView,
+    UserProfileView
+)
+from rest_framework import routers
 
-from user.views import CreateUserView, LogoutView, ManageUserView
+router = routers.DefaultRouter()
+router.register("profiles", UserProfileView)
+
 
 urlpatterns = [
     # user registration and authentication
@@ -15,7 +22,9 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token-obtain"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token-verify"),
-    path("logout/", LogoutView.as_view(), name="logout")
+    path("logout/", LogoutView.as_view(), name="logout"),
+    # user profile
+    path("", include(router.urls)),
 ]
 
 app_name = "user"

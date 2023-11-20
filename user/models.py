@@ -1,5 +1,10 @@
+import os
+import uuid
+
+from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.db import models
 
@@ -46,3 +51,26 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+
+def user_profile_picture(instance, filename):
+    _, extension = os.path.splitext(filename)
+    filename = f"{slugify(instance.username)}-{uuid.uuid4()}{extension}"
+
+    return os.path.join("uploads", "user", filename)
+
+
+class UserProfile(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    username = models.CharField(max_length=64, unique=True)
+    bio = models.TextField()
+    picture = models.ImageField(
+        null=True,
+        upload_to=user_profile_picture,
+        blank=True)
+
+    def __str__(self) -> str:
+        return self.username
