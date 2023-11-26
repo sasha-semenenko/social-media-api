@@ -7,7 +7,7 @@ from user.views import (
     CreateUserView,
     LogoutView,
     ManageUserView,
-    UserProfileView
+    UserProfileView, follow, unfollow
 )
 from rest_framework import routers
 
@@ -25,6 +25,8 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     # user profile
     path("", include(router.urls)),
+    path("profiles/<int:pk>/follow/", follow, name="follow"),
+    path("profiles/<int:pk>/unfollow/", unfollow, name="unfollow"),
 ]
 
 app_name = "user"

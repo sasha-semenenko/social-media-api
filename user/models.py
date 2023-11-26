@@ -71,6 +71,8 @@ class UserProfile(models.Model):
         null=True,
         upload_to=user_profile_picture,
         blank=True)
+    followers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="followers", blank=True)
+    following = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="following", blank=True)
 
     def __str__(self) -> str:
         return self.username

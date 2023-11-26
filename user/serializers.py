@@ -30,19 +30,40 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ("id", "username", "bio")
+        fields = ("id", "username", "bio", "picture")
 
 
 class UserProfileListSerializer(UserProfileSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("id", "username", "user", "bio", "picture")
+        fields = (
+            "id",
+            "user_id",
+            "username",
+            "following",
+            "followers",
+            "picture"
+        )
 
 
-class UserProfileDetailSerializer(UserProfileSerializer):
+class UserProfileDetailSerializer(UserProfileListSerializer):
     user = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ("id", "username", "user", "bio", "picture")
+        fields = (
+            "id",
+            "user",
+            "username",
+            "bio",
+            "picture",
+            "following",
+            "followers"
+        )
+
+
+class UserProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ("id", "picture")
