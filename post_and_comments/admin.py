@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from post_and_comments.models import Post
+
+admin.site.register(Post)
