@@ -4,7 +4,9 @@ from post_and_comments.views import (
     PostCreateView,
     PostListView,
     PostDetailView,
-    CommentsListView, CommentsCreateView, LikeView
+    CommentsListView,
+    CommentsCreateView,
+    LikeView
 )
 from rest_framework import routers
 

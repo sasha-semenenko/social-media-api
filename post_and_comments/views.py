@@ -1,17 +1,20 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, generics, mixins, status
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from post_and_comments.models import Post, Comments, Like
+from post_and_comments.permissions import IsAdminOrIfAuthenticatedReadOnly
 from post_and_comments.serializers import (
     PostCreateSerializer,
     PostListSerializer,
     PostDetailSerializer,
     CommentsCreateSerializer,
     CommentsListSerializer,
-    LikeSerializer
+    LikeSerializer, PostImageSerializer
 )
 from user.models import UserProfile
 
@@ -19,6 +22,7 @@ from user.models import UserProfile
 class PostListView(viewsets.ModelViewSet):
     queryset = Post.objects.select_related("author")
     serializer_class = PostListSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         title = self.request.query_params.get("title")
@@ -36,7 +40,23 @@ class PostListView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "retrieve":
             return PostDetailSerializer
+        if self.action == "upload_image":
+            return PostImageSerializer
         return PostListSerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsAdminUser]
+    )
+    def upload_image(self, request, pk=None):
+        post = self.get_object()
+        serializer = self.get_serializer(post, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         parameters=[
@@ -59,11 +79,13 @@ class PostListView(viewsets.ModelViewSet):
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.select_related("author")
     serializer_class = PostDetailSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.select_related("author")
     serializer_class = PostCreateSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def perform_create(self, serializer):
         return serializer.save(
@@ -74,6 +96,7 @@ class PostCreateView(generics.CreateAPIView):
 class CommentsListView(viewsets.ModelViewSet):
     queryset = Comments.objects.select_related("author", "post")
     serializer_class = CommentsListSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -109,10 +132,12 @@ class CommentsListView(viewsets.ModelViewSet):
 class CommentsCreateView(generics.CreateAPIView):
     queryset = Comments.objects.select_related("author", "post")
     serializer_class = CommentsCreateSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class LikeView(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = LikeSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         user = self.request.user

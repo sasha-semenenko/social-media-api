@@ -22,7 +22,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/user/", include("user.urls", namespace="user")),
     path("api/user/profiles/", include("user.urls",  namespace="profiles")),
-    path("api/post-comments/", include("post_and_comments.urls", namespace="post-and-comments")),
+    path("api/post-comments/", include("post_and_comments.urls", namespace="posts")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/doc/swagger/",

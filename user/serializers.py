@@ -27,6 +27,12 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class UserProfileCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ("id", "username", "bio", "picture")
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -41,9 +47,8 @@ class UserProfileListSerializer(UserProfileSerializer):
             "id",
             "user_id",
             "username",
-            "following",
-            "followers",
-            "picture"
+            "picture",
+            "follow"
         )
 
 
@@ -58,8 +63,7 @@ class UserProfileDetailSerializer(UserProfileListSerializer):
             "username",
             "bio",
             "picture",
-            "following",
-            "followers"
+            "follow"
         )
 
 

@@ -1,4 +1,3 @@
-from django.http import Http404
 from django.shortcuts import redirect
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -9,9 +8,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from post_and_comments.permissions import IsAdminOrIfAuthenticatedReadOnly
 from user.models import UserProfile
-from user.serializers import UserSerializer, UserProfileSerializer, UserProfileListSerializer, \
-    UserProfileDetailSerializer, UserProfileImageSerializer
+from user.serializers import (
+    UserSerializer,
+    UserProfileSerializer,
+    UserProfileListSerializer,
+    UserProfileDetailSerializer,
+    UserProfileImageSerializer,
+    UserProfileCreateSerializer
+)
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -40,9 +46,19 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserProfileCreateView(generics.CreateAPIView):
+    queryset = UserProfile.objects.select_related("user")
+    serializer_class = UserProfileCreateSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly, )
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
 class UserProfileView(viewsets.ModelViewSet):
-    queryset = UserProfile.objects.select_related("user").prefetch_related("following", "followers")
+    queryset = UserProfile.objects.select_related("user").prefetch_related("follow",)
     serializer_class = UserProfileSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly, )
 
     def get_queryset(self):
         username = self.request.query_params.get("username")
@@ -72,7 +88,7 @@ class UserProfileView(viewsets.ModelViewSet):
         permission_classes=[IsAdminUser],
     )
     def upload_image(self, request, pk=None):
-        """Endpoint for uploading image to specific movie"""
+        """Endpoint for uploading image to specific user profile"""
         user_profile = self.get_object()
         serializer = self.get_serializer(user_profile, data=request.data)
 
@@ -101,9 +117,8 @@ def follow(request, pk: int):
     other_user = other_profile.user
     if current_user == other_user:
         raise ValueError("You can not follow yourself")
-    current_profile.following.add(other_user)
-    other_profile.followers.add(current_user)
-    return redirect("profiles:userprofile-detail", pk=other_profile.pk)
+    current_profile.follow.add(other_user)
+    return redirect("profiles:profile-list")
 
 
 @api_view(["POST"])
@@ -112,6 +127,5 @@ def unfollow(request, pk: int):
     current_profile = UserProfile.objects.get(user=current_user)
     other_profile = UserProfile.objects.get(pk=pk)
     other_user = other_profile.user
-    current_profile.following.remove(other_user)
-    other_profile.followers.remove(current_user)
-    return redirect("profiles:userprofile-detail", pk=other_profile.pk)
+    current_profile.follow.remove(other_user)
+    return redirect("profiles:profile-list")

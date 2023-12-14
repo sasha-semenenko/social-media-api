@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView, TokenVerifyView,
@@ -7,13 +7,11 @@ from user.views import (
     CreateUserView,
     LogoutView,
     ManageUserView,
-    UserProfileView, follow, unfollow
+    UserProfileView,
+    follow,
+    unfollow,
+    UserProfileCreateView
 )
-from rest_framework import routers
-
-router = routers.DefaultRouter()
-router.register("profiles", UserProfileView)
-
 
 urlpatterns = [
     # user registration and authentication
@@ -24,7 +22,11 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token-verify"),
     path("logout/", LogoutView.as_view(), name="logout"),
     # user profile
-    path("", include(router.urls)),
+    path("userprofile-create/", UserProfileCreateView.as_view(), name="create-userprofile"),
+    path("profiles/", UserProfileView.as_view({'get': 'list'}), name="profile-list"),
+    path("profiles/<int:pk>/", UserProfileView.as_view({'get': 'retrieve'}), name="profile-detail"),
+    path("profiles/<int:pk>/upload-image/", UserProfileView.as_view({"post": "upload_image"}), name="upload-image"),
+    path("profiles/<int:pk>/update/", UserProfileView.as_view({'put': 'update'}), name="profile-update"),
     path("profiles/<int:pk>/follow/", follow, name="follow"),
     path("profiles/<int:pk>/unfollow/", unfollow, name="unfollow"),
 ]

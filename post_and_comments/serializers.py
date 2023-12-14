@@ -32,9 +32,24 @@ class PostCreateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ["id", "image"]
+
+
 class CommentsListSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source="author.username", read_only=True)
     post = serializers.CharField(source="post.title", read_only=True)
+
+    class Meta:
+        model = Comments
+        fields = ("id", "author", "post", "created_at", "content")
+
+
+class CommentsDetailSerializer(serializers.ModelSerializer):
+    author = UserProfileDetailSerializer(many=False, read_only=True)
+    post = PostDetailSerializer(many=False, read_only=True)
 
     class Meta:
         model = Comments
